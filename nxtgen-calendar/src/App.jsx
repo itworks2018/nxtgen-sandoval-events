@@ -8,8 +8,6 @@ const MONTH_NAMES = ["January","February","March","April","May","June","July","A
 const DAY_NAMES = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const STORAGE_KEY = "nxtgen-sandoval-events:events";
 const ANNOUNCEMENTS_KEY = "nxtgen-sandoval-events:announcements";
-const TEACHER_KEY = "nxtgen-sandoval-events:teacher-code";
-const DEFAULT_CODE = "sandoval2026";
 
 function pad(n) { return String(n).padStart(2, "0"); }
 function toDateKey(y, m, d) { return `${y}-${pad(m + 1)}-${pad(d)}`; }
@@ -226,22 +224,23 @@ export default function App() {
   // ---------- teacher gate ----------
   async function attemptUnlock() {
     setGateError("");
-    let code = DEFAULT_CODE;
     try {
-      const stored = await window.storage.get(TEACHER_KEY, true);
-      if (stored && stored.value) code = stored.value;
-    } catch (e) { /* use default */ }
-    if (codeInput.trim() === code) {
-      setTeacherMode(true);
-      setShowGate(false);
-      setCodeInput("");
-      showToast("Teacher mode on");
-    } else {
-      setGateError("That code doesn't match. Try again.");
+      const ok = await window.storage.login(codeInput.trim());
+      if (ok) {
+        setTeacherMode(true);
+        setShowGate(false);
+        setCodeInput("");
+        showToast("Teacher mode on");
+      } else {
+        setGateError("That code doesn't match. Try again.");
+      }
+    } catch (e) {
+      setGateError("Couldn't reach the server. Try again.");
     }
   }
 
   function exitTeacherMode() {
+    window.storage.logout();
     setTeacherMode(false);
     setEditingEvent(null);
     setAddDrafts(null);
