@@ -385,7 +385,7 @@ export default function App() {
           </div>
           <div>
             <h1 style={styles.brandTitle}>NxtGen <span style={{ color: "#FB7503" }}>Sandoval</span> Events</h1>
-            <p style={styles.brandSub}>NxtGen SandovalCalendar of Events</p>
+            <p style={styles.brandSub}>NxtGen Sandoval Calendar of Events</p>
           </div>
         </div>
 
