@@ -11,7 +11,7 @@ const { Pool } = pg;
 // Writes (PUT/DELETE) require a valid token obtained via POST /auth/login.
 // This keeps the teacher code check on the server instead of trusting the client.
 const TEACHER_CODE_KEY = "nxtgen-sandoval-events:teacher-code";
-const DEFAULT_TEACHER_CODE = process.env.DEFAULT_TEACHER_CODE || "sandoval2026";
+const DEFAULT_TEACHER_CODE = process.env.DEFAULT_TEACHER_CODE || null;
 const AUTH_SECRET = process.env.AUTH_SECRET;
 if (!AUTH_SECRET) {
   console.warn(
@@ -112,6 +112,12 @@ app.post("/auth/login", authLimiter, async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "server error" });
+  }
+  if (!expected) {
+    console.warn(
+      "No teacher code configured — set DEFAULT_TEACHER_CODE or store a value at kv_store key 'nxtgen-sandoval-events:teacher-code' (shared=true)."
+    );
+    return res.status(401).json({ error: "invalid code" });
   }
   if (code !== expected) return res.status(401).json({ error: "invalid code" });
   const exp = Date.now() + TOKEN_TTL_MS;
