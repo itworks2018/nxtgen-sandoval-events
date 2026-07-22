@@ -411,49 +411,51 @@ export default function App() {
       </div>
 
       {/* Calendar grid */}
-      <div style={styles.weekHeader}>
-        {DAY_NAMES.map((d) => <div key={d} style={styles.weekHeaderCell}>{d}</div>)}
-      </div>
-
-      {loading ? (
-        <div style={styles.loadingBox}><Loader2 size={22} color="#8B90B3" style={{ animation: "spin 1s linear infinite" }} /></div>
-      ) : (
-        <div style={styles.grid}>
-          {cells.map((cell, i) => {
-            const dayEvents = eventsByDate[cell.dateKey] || [];
-            const isToday = cell.dateKey === todayKey();
-            return (
-              <button
-                key={i}
-                className="nxg-cell"
-                onClick={() => setSelectedDate(cell.dateKey)}
-                style={{
-                  ...styles.cell,
-                  opacity: cell.inMonth ? 1 : 0.35,
-                  background: selectedDate === cell.dateKey ? "#202547" : "#171B33",
-                  border: isToday ? "1px solid #FB7503" : "1px solid #2A2F52",
-                }}
-              >
-                <div style={styles.cellTop}>
-                  <span style={{ ...styles.cellDay, color: isToday ? "#FB7503" : "#F4F3FA" }}>{cell.day}</span>
-                  {isToday && <span style={styles.todayDot} />}
-                </div>
-                <div style={styles.chipStack}>
-                  {dayEvents.slice(0, 3).map((ev) => (
-                    <div key={ev.id} style={{ ...styles.chip, borderLeftColor: venueColor(ev.venue) }}>
-                      {ev.startTime && <span style={styles.chipTime}>{formatTime12(ev.startTime)}</span>}
-                      <span style={styles.chipName}>{ev.name}</span>
-                    </div>
-                  ))}
-                  {dayEvents.length > 3 && (
-                    <div style={styles.moreLabel}>+{dayEvents.length - 3} more</div>
-                  )}
-                </div>
-              </button>
-            );
-          })}
+      <div style={styles.main}>
+        <div style={styles.weekHeader}>
+          {DAY_NAMES.map((d) => <div key={d} style={styles.weekHeaderCell}>{d}</div>)}
         </div>
-      )}
+
+        {loading ? (
+          <div style={styles.loadingBox}><Loader2 size={22} color="#8B90B3" style={{ animation: "spin 1s linear infinite" }} /></div>
+        ) : (
+          <div style={styles.grid}>
+            {cells.map((cell, i) => {
+              const dayEvents = eventsByDate[cell.dateKey] || [];
+              const isToday = cell.dateKey === todayKey();
+              return (
+                <button
+                  key={i}
+                  className="nxg-cell"
+                  onClick={() => setSelectedDate(cell.dateKey)}
+                  style={{
+                    ...styles.cell,
+                    opacity: cell.inMonth ? 1 : 0.35,
+                    background: selectedDate === cell.dateKey ? "#202547" : "#171B33",
+                    border: isToday ? "1px solid #FB7503" : "1px solid #2A2F52",
+                  }}
+                >
+                  <div style={styles.cellTop}>
+                    <span style={{ ...styles.cellDay, color: isToday ? "#FB7503" : "#F4F3FA" }}>{cell.day}</span>
+                    {isToday && <span style={styles.todayDot} />}
+                  </div>
+                  <div style={styles.chipStack}>
+                    {dayEvents.slice(0, 3).map((ev) => (
+                      <div key={ev.id} style={{ ...styles.chip, borderLeftColor: venueColor(ev.venue) }}>
+                        {ev.startTime && <span style={styles.chipTime}>{formatTime12(ev.startTime)}</span>}
+                        <span style={styles.chipName}>{ev.name}</span>
+                      </div>
+                    ))}
+                    {dayEvents.length > 3 && (
+                      <div style={styles.moreLabel}>+{dayEvents.length - 3} more</div>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {/* Day rail (slide-over) */}
       {selectedDate && (
@@ -602,6 +604,8 @@ export default function App() {
           {toast.msg}
         </div>
       )}
+
+      <footer style={styles.footer}>CCF NextGen Sandocal 2026. All Rights Reserved.</footer>
 
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
@@ -816,10 +820,15 @@ const styles = {
     background: "#0F1224",
     color: "#F4F3FA",
     fontFamily: "'Inter', sans-serif",
-    padding: "20px 16px 60px",
-    maxWidth: 900,
+    padding: "clamp(14px, 2vw, 28px) clamp(12px, 3vw, 32px) 0",
+    width: "100%",
+    maxWidth: 1600,
     margin: "0 auto",
+    display: "flex",
+    flexDirection: "column",
   },
+  main: { flex: 1, display: "flex", flexDirection: "column", minHeight: 0 },
+  footer: { textAlign: "center", color: "#8B90B3", fontSize: 12, padding: "18px 0 20px", marginTop: 24, borderTop: "1px solid #2A2F52" },
   header: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 20 },
   brandRow: { display: "flex", alignItems: "center", gap: 12 },
   brandMark: { width: 42, height: 42, borderRadius: 10, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden", padding: 3 },
@@ -845,9 +854,9 @@ const styles = {
   todayBtn: { background: "transparent", border: "1px solid #2A2F52", color: "#8B90B3", padding: "7px 14px", borderRadius: 8, fontSize: 12.5, fontWeight: 500 },
   weekHeader: { display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6, marginBottom: 6 },
   weekHeaderCell: { textAlign: "center", fontSize: 11, fontWeight: 600, color: "#8B90B3", letterSpacing: "0.05em", padding: "4px 0" },
-  grid: { display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 },
+  grid: { flex: 1, display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gridAutoRows: "1fr", gap: 6, minHeight: 0 },
   cell: {
-    aspectRatio: "1", minHeight: 78, borderRadius: 10, padding: "6px 6px", textAlign: "left",
+    minHeight: 78, borderRadius: 10, padding: "6px 6px", textAlign: "left",
     display: "flex", flexDirection: "column", gap: 4, position: "relative", overflow: "hidden",
   },
   cellTop: { display: "flex", alignItems: "center", gap: 5 },
