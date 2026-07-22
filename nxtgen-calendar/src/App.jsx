@@ -605,7 +605,7 @@ export default function App() {
         </div>
       )}
 
-      <footer style={styles.footer}>CCF NextGen Sandocal 2026. All Rights Reserved.</footer>
+      <footer style={styles.footer}>CCF NextGen Sandoval 2026. All Rights Reserved.</footer>
 
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
