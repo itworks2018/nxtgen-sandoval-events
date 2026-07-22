@@ -131,6 +131,7 @@ export default function App() {
   async function saveAnnouncement(form) {
     const clean = {
       id: form.id || uid(),
+      title: form.title.trim(),
       text: form.text.trim(),
       urgent: !!form.urgent,
       createdAt: form.id ? form.createdAt : Date.now(),
@@ -366,7 +367,7 @@ export default function App() {
             <button
               className="nxg-btn"
               style={styles.announceAddBtn}
-              onClick={() => setEditingAnnouncement({ id: null, text: "", urgent: false })}
+              onClick={() => setEditingAnnouncement({ id: null, title: "", text: "", urgent: false })}
             >
               <Plus size={13} /> Post
             </button>
@@ -379,17 +380,23 @@ export default function App() {
             {announcements.map((a) => (
               <div key={a.id} style={{ ...styles.announceCard, borderLeftColor: a.urgent ? "#FB7503" : "#5EEAD4" }}>
                 {a.urgent && <AlertTriangle size={13} color="#FB7503" style={{ flexShrink: 0, marginTop: 1 }} />}
-                <p style={styles.announceText}>{a.text}</p>
-                {teacherMode && (
-                  <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-                    <button className="nxg-btn" style={styles.iconBtnSm} onClick={() => setEditingAnnouncement(a)} aria-label="Edit announcement">
-                      <Pencil size={12} />
-                    </button>
-                    <button className="nxg-btn" style={{ ...styles.iconBtnSm, color: "#FB7503" }} onClick={() => setConfirmDeleteAnnouncement(a.id)} aria-label="Delete announcement">
-                      <Trash2 size={12} />
-                    </button>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={styles.announceCardHead}>
+                    <h4 style={styles.announceTitle}>{a.title}</h4>
+                    {teacherMode && (
+                      <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                        <button className="nxg-btn" style={styles.iconBtnSm} onClick={() => setEditingAnnouncement(a)} aria-label="Edit announcement">
+                          <Pencil size={12} />
+                        </button>
+                        <button className="nxg-btn" style={{ ...styles.iconBtnSm, color: "#FB7503" }} onClick={() => setConfirmDeleteAnnouncement(a.id)} aria-label="Delete announcement">
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    )}
                   </div>
-                )}
+                  <p style={styles.announceText}>{a.text}</p>
+                  <p style={styles.announceMeta}>Posted {formatAnnouncementDateTime(a.createdAt)}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -618,6 +625,12 @@ function formatDateHeading(dateKey) {
   return date.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
 }
 
+// human-friendly "posted on" timestamp for an announcement
+function formatAnnouncementDateTime(ts) {
+  const date = new Date(ts);
+  return date.toLocaleString(undefined, { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
+}
+
 // ---------- single event edit form ----------
 function EventEditForm({ initial, onCancel, onSave }) {
   const [form, setForm] = useState(initial);
@@ -771,6 +784,7 @@ function AnnouncementForm({ initial, onCancel, onSave }) {
   }
 
   function submit() {
+    if (!form.title.trim()) { setError("Give the announcement a title."); return; }
     if (!form.text.trim()) { setError("Write the announcement first."); return; }
     setError("");
     onSave(form);
@@ -784,13 +798,22 @@ function AnnouncementForm({ initial, onCancel, onSave }) {
           <button className="nxg-btn" style={styles.iconBtn} onClick={onCancel} aria-label="Close"><X size={18} /></button>
         </div>
 
-        <label style={styles.label}>Message</label>
+        <label style={styles.label}>Title</label>
+        <input
+          className="nxg-input"
+          style={styles.input}
+          value={form.title}
+          onChange={(e) => update("title", e.target.value)}
+          placeholder="No fellowship this Friday"
+        />
+
+        <label style={styles.label}>Description</label>
         <textarea
           className="nxg-input"
           style={{ ...styles.input, minHeight: 90, resize: "vertical" }}
           value={form.text}
           onChange={(e) => update("text", e.target.value)}
-          placeholder="No fellowship this Friday — resuming next week."
+          placeholder="We're resuming next week at the usual time and venue."
         />
 
         <label style={styles.checkboxRow}>
@@ -845,7 +868,10 @@ const styles = {
   announceEmpty: { color: "#8B90B3", fontSize: 12.5, margin: "8px 0 2px" },
   announceList: { display: "flex", flexDirection: "column", gap: 8, marginTop: 8, maxHeight: 180, overflowY: "auto", paddingRight: 4 },
   announceCard: { display: "flex", alignItems: "flex-start", gap: 8, background: "#202547", borderLeft: "3px solid", borderRadius: 8, padding: "9px 11px", animation: "fadeUp 0.2s ease-out" },
-  announceText: { flex: 1, fontSize: 12.5, lineHeight: 1.45, margin: 0, color: "#F4F3FA" },
+  announceCardHead: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 },
+  announceTitle: { fontFamily: "'Sora', sans-serif", fontSize: 13, fontWeight: 700, margin: 0, color: "#F4F3FA" },
+  announceText: { flex: 1, fontSize: 12.5, lineHeight: 1.45, margin: "3px 0 0", color: "#F4F3FA" },
+  announceMeta: { fontSize: 10.5, color: "#8B90B3", margin: "6px 0 0" },
   checkboxRow: { display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: "#B4B8D4", marginTop: 12 },
   navRow: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 },
   navLeft: { display: "flex", alignItems: "center", gap: 10 },
