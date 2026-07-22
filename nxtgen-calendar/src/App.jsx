@@ -41,8 +41,7 @@ function expandDateKeys(ev) {
 }
 
 // hash a venue name to one of a fixed accent palette so recurring venues cluster visually
-const VENUE_PALETTE = ["#FB7503", "#30CEE4", "#5EEAD4", "#A78BFA", "#F472B6", "#60A5FA"];
-function venueColor(venue) {
+const VENUE_PALETTE = ["#FB7503", "#30CEE4", "#5EEAD4", "#A78BFA", "#F472B6", "#60A5FA"];function venueColor(venue) {
   if (!venue) return VENUE_PALETTE[0];
   let h = 0;
   for (let i = 0; i < venue.length; i++) h = (h * 31 + venue.charCodeAt(i)) % VENUE_PALETTE.length;
@@ -61,6 +60,23 @@ function formatTime12(t) {
 function formatShortDate(key) {
   const d = keyToDate(key);
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+// returns the existing event that collides with `candidate` on the same day,
+// start time, and venue (ignoring `excludeId`, e.g. the event being edited).
+// Venue and start time both must be set for a conflict to be flagged.
+function findEventConflict(candidate, events, excludeId) {
+  const venue = (candidate.venue || "").trim().toLowerCase();
+  if (!venue || !candidate.startTime) return null;
+  const candidateDays = expandDateKeys(candidate);
+  for (const ev of events) {
+    if (ev.id === excludeId) continue;
+    const evVenue = (ev.venue || "").trim().toLowerCase();
+    if (evVenue !== venue || ev.startTime !== candidate.startTime) continue;
+    const evDays = expandDateKeys(ev);
+    if (evDays.some((d) => candidateDays.includes(d))) return ev;
+  }
+  return null;
 }
 
 // human-friendly "when" line for an event, aware of multi-day spans
@@ -605,6 +621,7 @@ export default function App() {
       {editingEvent && (
         <EventEditForm
           initial={editingEvent}
+          events={events}
           onCancel={() => setEditingEvent(null)}
           onSave={saveEvent}
         />
@@ -614,6 +631,7 @@ export default function App() {
       {addDrafts && (
         <EventAddForm
           drafts={addDrafts}
+          events={events}
           makeDraft={() => makeDraft(selectedDate)}
           onCancel={() => setAddDrafts(null)}
           onSaveAll={saveMultipleEvents}
@@ -661,7 +679,7 @@ function formatAnnouncementDateTime(ts) {
 }
 
 // ---------- single event edit form ----------
-function EventEditForm({ initial, onCancel, onSave }) {
+function EventEditForm({ initial, events, onCancel, onSave }) {
   const [form, setForm] = useState(initial);
   const [error, setError] = useState("");
 
@@ -672,6 +690,11 @@ function EventEditForm({ initial, onCancel, onSave }) {
   function submit() {
     if (!form.name.trim()) { setError("Give the event a name."); return; }
     if (!form.startDate) { setError("Pick a start date."); return; }
+    const conflict = findEventConflict(form, events, form.id);
+    if (conflict) {
+      setError(`Already booked: "${conflict.name}" is at the same day, time, and venue.`);
+      return;
+    }
     setError("");
     onSave(form);
   }
@@ -698,7 +721,7 @@ function EventEditForm({ initial, onCancel, onSave }) {
 }
 
 // ---------- multi-event quick add form ----------
-function EventAddForm({ drafts: initialDrafts, makeDraft, onCancel, onSaveAll }) {
+function EventAddForm({ drafts: initialDrafts, events, makeDraft, onCancel, onSaveAll }) {
   const [drafts, setDrafts] = useState(initialDrafts);
   const [error, setError] = useState("");
 
@@ -718,6 +741,15 @@ function EventAddForm({ drafts: initialDrafts, makeDraft, onCancel, onSaveAll })
     for (const d of drafts) {
       if (!d.name.trim()) { setError("Every event needs a name."); return; }
       if (!d.startDate) { setError("Every event needs a start date."); return; }
+    }
+    const checked = [...events];
+    for (const d of drafts) {
+      const conflict = findEventConflict(d, checked);
+      if (conflict) {
+        setError(`"${d.name.trim()}" conflicts with "${conflict.name}" — same day, time, and venue.`);
+        return;
+      }
+      checked.push(d);
     }
     setError("");
     onSaveAll(drafts);
