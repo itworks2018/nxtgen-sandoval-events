@@ -36,18 +36,28 @@ async function requireAuth(req, res, next) {
   const token = header.startsWith("Bearer ") ? header.slice(7) : null;
   
   if (!token) {
+    console.error("[requireAuth] No Bearer token provided");
     return res.status(401).json({ error: "unauthorized" });
   }
 
   // Verify token with Supabase and store it for later use
   try {
+    console.log("[requireAuth] Verifying token with Supabase...");
     const resp = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
       headers: { Authorization: `Bearer ${token}`, apikey: SUPABASE_ANON_KEY },
     });
-    if (!resp.ok) return res.status(401).json({ error: "unauthorized" });
+    
+    if (!resp.ok) {
+      console.error("[requireAuth] Supabase auth verification failed:", resp.status, resp.statusText);
+      return res.status(401).json({ error: "unauthorized" });
+    }
+    
+    const user = await resp.json();
+    console.log("[requireAuth] Token verified for user:", user.id);
     
     // Store token in request for use in route handlers
     req.authToken = token;
+    req.userId = user.id;
     next();
   } catch (err) {
     console.error("[requireAuth] Error verifying token:", err.message);
@@ -103,62 +113,54 @@ app.get("/kv/:key", async (req, res) => {
 });
 
 // PUT /kv/:key  body: { value: string, shared: boolean }
-// Uses Supabase client with user's auth token so RLS policies are enforced
+// Token verified by requireAuth; then use direct pool connection (backend is trusted)
 app.put("/kv/:key", requireAuth, async (req, res) => {
   const { value, shared = false } = req.body || {};
   if (typeof value !== "string") return res.status(400).json({ error: "value must be a string" });
   
   try {
-    // Create authenticated Supabase client with user's token
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      global: { headers: { Authorization: `Bearer ${req.authToken}` } },
-    });
+    console.log("[PUT] Saving to database:", { key: req.params.key, shared, valueLength: value.length });
+    
+    // Use direct pool connection (already authenticated via requireAuth middleware)
+    const result = await pool.query(
+      `INSERT INTO kv_store (key, shared, value, updated_at)
+       VALUES ($1, $2, $3, now())
+       ON CONFLICT (key, shared) DO UPDATE SET value = EXCLUDED.value, updated_at = now()
+       RETURNING key, shared, value`,
+      [req.params.key, shared, value]
+    );
 
-    // Use upsert: if row exists, update; otherwise insert
-    const { error } = await supabase
-      .from("kv_store")
-      .upsert(
-        { key: req.params.key, shared, value, updated_at: new Date().toISOString() },
-        { onConflict: "key,shared" }
-      );
-
-    if (error) {
-      console.error("[PUT] Supabase error:", error.message);
+    if (result.rows.length === 0) {
+      console.error("[PUT] No rows returned from database");
       return res.status(500).json({ error: "failed to save" });
     }
 
-    res.json({ key: req.params.key, value, shared });
+    console.log("[PUT] Success:", { key: req.params.key, shared });
+    res.json(result.rows[0]);
   } catch (err) {
-    console.error("[PUT] Error:", err.message);
+    console.error("[PUT] Database error:", err.message, err);
     res.status(500).json({ error: "server error" });
   }
 });
 
 // DELETE /kv/:key?shared=true
-// Uses Supabase client with user's auth token so RLS policies are enforced
+// Token verified by requireAuth; then use direct pool connection (backend is trusted)
 app.delete("/kv/:key", requireAuth, async (req, res) => {
   const shared = req.query.shared === "true";
   
   try {
-    // Create authenticated Supabase client with user's token
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      global: { headers: { Authorization: `Bearer ${req.authToken}` } },
-    });
+    console.log("[DELETE] Deleting from database:", { key: req.params.key, shared });
+    
+    // Use direct pool connection (already authenticated via requireAuth middleware)
+    const result = await pool.query(
+      "DELETE FROM kv_store WHERE key = $1 AND shared = $2",
+      [req.params.key, shared]
+    );
 
-    const { error, data } = await supabase
-      .from("kv_store")
-      .delete()
-      .eq("key", req.params.key)
-      .eq("shared", shared);
-
-    if (error) {
-      console.error("[DELETE] Supabase error:", error.message);
-      return res.status(500).json({ error: "failed to delete" });
-    }
-
-    res.json({ key: req.params.key, deleted: !!data, shared });
+    console.log("[DELETE] Success:", { key: req.params.key, shared, rowsDeleted: result.rowCount });
+    res.json({ key: req.params.key, deleted: result.rowCount > 0, shared });
   } catch (err) {
-    console.error("[DELETE] Error:", err.message);
+    console.error("[DELETE] Database error:", err.message, err);
     res.status(500).json({ error: "server error" });
   }
 });
