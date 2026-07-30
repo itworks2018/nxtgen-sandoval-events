@@ -228,16 +228,20 @@ export default function App() {
   }
 
   const persist = useCallback(async (next) => {
+    console.log("[App.persist] START", { eventCount: next.length, events: next });
     setEvents(next);
     setSaving(true);
     try {
-      await window.storage.set(STORAGE_KEY, JSON.stringify(next), true);
+      const result = await window.storage.set(STORAGE_KEY, JSON.stringify(next), true);
+      console.log("[App.persist] SUCCESS", { result });
     } catch (e) {
+      console.error("[App.persist] FAILED", { error: e.message });
       showToast("Couldn't save — try again", true);
     } finally {
       setSaving(false);
+      console.log("[App.persist] DONE, current events:", events);
     }
-  }, []);
+  }, [events]);
 
   function showToast(msg, isError) {
     setToast({ msg, isError });
@@ -343,6 +347,7 @@ export default function App() {
 
   // ---------- CRUD ----------
   async function saveEvent(form) {
+    console.log("[App.saveEvent] START", { form, currentEvents: events });
     const clean = {
       id: form.id || uid(),
       name: form.name.trim(),
@@ -355,12 +360,14 @@ export default function App() {
       notes: form.notes.trim(),
     };
     const next = events.map((e) => (e.id === form.id ? clean : e));
+    console.log("[App.saveEvent] computed next array", { nextLength: next.length, isEditing: !!form.id, next });
     await persist(next);
     setEditingEvent(null);
     showToast("Event updated");
   }
 
   async function saveMultipleEvents(drafts) {
+    console.log("[App.saveMultipleEvents] START", { draftCount: drafts.length, currentEvents: events });
     const clean = drafts.map((form) => ({
       id: uid(),
       name: form.name.trim(),
@@ -373,13 +380,16 @@ export default function App() {
       notes: form.notes.trim(),
     }));
     const next = [...events, ...clean];
+    console.log("[App.saveMultipleEvents] computed next array", { nextLength: next.length, next });
     await persist(next);
     setAddDrafts(null);
     showToast(clean.length > 1 ? `${clean.length} events added` : "Event added");
   }
 
   async function deleteEvent(id) {
+    console.log("[App.deleteEvent] START", { id, currentEvents: events });
     const next = events.filter((e) => e.id !== id);
+    console.log("[App.deleteEvent] computed next array", { nextLength: next.length, next });
     await persist(next);
     setConfirmDelete(null);
     showToast("Event deleted");
