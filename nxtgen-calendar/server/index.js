@@ -15,14 +15,15 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 const DATABASE_URL = process.env.DATABASE_URL;
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !DATABASE_URL) {
-  console.warn(
-    "WARNING: Missing SUPABASE_URL, SUPABASE_ANON_KEY, or DATABASE_URL — API will not function properly."
-  );
+if (!SUPABASE_URL) {
+  console.warn("WARNING: SUPABASE_URL not set — authenticated writes will fail.");
 }
-
-// Supabase client for authenticated operations (with RLS)
-const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+if (!SUPABASE_ANON_KEY) {
+  console.warn("WARNING: SUPABASE_ANON_KEY not set — authenticated writes will fail.");
+}
+if (!DATABASE_URL) {
+  console.warn("WARNING: DATABASE_URL not set — database connection will fail.");
+}
 
 // Postgres pool for public reads (bypasses auth, using connection string)
 const pool = new Pool({
