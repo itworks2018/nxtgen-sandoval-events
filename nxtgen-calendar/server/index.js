@@ -3,46 +3,56 @@ import cors from "cors";
 import pg from "pg";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import { createClient } from "@supabase/supabase-js";
 
 const { Pool } = pg;
 
-// ---------- auth: Supabase Auth verifies who's allowed to write ----------
-// Writes (PUT/DELETE) require a valid Supabase session token (issued when a
-// teacher signs in with email/password on the frontend). Only accounts you
-// create in the Supabase dashboard (Authentication > Users) can sign in, so
-// having a valid token is sufficient proof of being an approved teacher.
+// ---------- auth: Supabase RLS enforces who's allowed to write ----------
+// With Row Level Security enabled in Supabase, only authenticated users can
+// write/update/delete. The user's auth token is passed to Supabase, which
+// checks `auth.role()` and `auth.uid()` in RLS policies.
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+const DATABASE_URL = process.env.DATABASE_URL;
+
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !DATABASE_URL) {
   console.warn(
-    "WARNING: SUPABASE_URL / SUPABASE_ANON_KEY are not set — teacher sign-in verification will fail until they're configured."
+    "WARNING: Missing SUPABASE_URL, SUPABASE_ANON_KEY, or DATABASE_URL — API will not function properly."
   );
 }
+
+// Supabase client for authenticated operations (with RLS)
+const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Postgres pool for public reads (bypasses auth, using connection string)
+const pool = new Pool({
+  connectionString: DATABASE_URL,
+  ssl: DATABASE_URL?.includes("localhost") ? false : { rejectUnauthorized: false },
+});
 
 async function requireAuth(req, res, next) {
   const header = req.headers.authorization || "";
   const token = header.startsWith("Bearer ") ? header.slice(7) : null;
-  if (!token || !SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  
+  if (!token) {
     return res.status(401).json({ error: "unauthorized" });
   }
+
+  // Verify token with Supabase and store it for later use
   try {
     const resp = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
       headers: { Authorization: `Bearer ${token}`, apikey: SUPABASE_ANON_KEY },
     });
     if (!resp.ok) return res.status(401).json({ error: "unauthorized" });
+    
+    // Store token in request for use in route handlers
+    req.authToken = token;
     next();
   } catch (err) {
-    console.error(err);
+    console.error("[requireAuth] Error verifying token:", err.message);
     return res.status(401).json({ error: "unauthorized" });
   }
 }
-
-// Render's managed Postgres gives you DATABASE_URL automatically once the
-// database is created and linked to this service.
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL?.includes("localhost") ? false : { rejectUnauthorized: false },
-});
 
 async function ensureTable() {
   await pool.query(`
@@ -92,34 +102,62 @@ app.get("/kv/:key", async (req, res) => {
 });
 
 // PUT /kv/:key  body: { value: string, shared: boolean }
+// Uses Supabase client with user's auth token so RLS policies are enforced
 app.put("/kv/:key", requireAuth, async (req, res) => {
   const { value, shared = false } = req.body || {};
   if (typeof value !== "string") return res.status(400).json({ error: "value must be a string" });
+  
   try {
-    await pool.query(
-      `INSERT INTO kv_store (key, shared, value, updated_at)
-       VALUES ($1, $2, $3, now())
-       ON CONFLICT (key, shared) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`,
-      [req.params.key, shared, value]
-    );
+    // Create authenticated Supabase client with user's token
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: `Bearer ${req.authToken}` } },
+    });
+
+    // Use upsert: if row exists, update; otherwise insert
+    const { error } = await supabase
+      .from("kv_store")
+      .upsert(
+        { key: req.params.key, shared, value, updated_at: new Date().toISOString() },
+        { onConflict: "key,shared" }
+      );
+
+    if (error) {
+      console.error("[PUT] Supabase error:", error.message);
+      return res.status(500).json({ error: "failed to save" });
+    }
+
     res.json({ key: req.params.key, value, shared });
   } catch (err) {
-    console.error(err);
+    console.error("[PUT] Error:", err.message);
     res.status(500).json({ error: "server error" });
   }
 });
 
 // DELETE /kv/:key?shared=true
+// Uses Supabase client with user's auth token so RLS policies are enforced
 app.delete("/kv/:key", requireAuth, async (req, res) => {
   const shared = req.query.shared === "true";
+  
   try {
-    const result = await pool.query(
-      "DELETE FROM kv_store WHERE key = $1 AND shared = $2",
-      [req.params.key, shared]
-    );
-    res.json({ key: req.params.key, deleted: result.rowCount > 0, shared });
+    // Create authenticated Supabase client with user's token
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: `Bearer ${req.authToken}` } },
+    });
+
+    const { error, data } = await supabase
+      .from("kv_store")
+      .delete()
+      .eq("key", req.params.key)
+      .eq("shared", shared);
+
+    if (error) {
+      console.error("[DELETE] Supabase error:", error.message);
+      return res.status(500).json({ error: "failed to delete" });
+    }
+
+    res.json({ key: req.params.key, deleted: !!data, shared });
   } catch (err) {
-    console.error(err);
+    console.error("[DELETE] Error:", err.message);
     res.status(500).json({ error: "server error" });
   }
 });
