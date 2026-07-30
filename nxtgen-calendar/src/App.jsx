@@ -239,9 +239,9 @@ export default function App() {
       showToast("Couldn't save — try again", true);
     } finally {
       setSaving(false);
-      console.log("[App.persist] DONE, current events:", events);
+      console.log("[App.persist] DONE, events saved: ", next);
     }
-  }, [events]);
+  }, []);
 
   function showToast(msg, isError) {
     setToast({ msg, isError });
