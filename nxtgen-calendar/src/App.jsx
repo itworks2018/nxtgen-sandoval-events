@@ -1147,14 +1147,15 @@ const styles = {
 
   toast: { position: "fixed", bottom: 20, left: "50%", transform: "translateX(-50%)", background: "#171B33", border: "1px solid", borderRadius: 10, padding: "10px 18px", fontSize: 13, zIndex: 60, animation: "fadeUp 0.2s ease-out" },
 
-  // List view styles
+  // List view styles (responsive for mobile)
   listView: { display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" },
-  listContainer: { flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 10, padding: 16 },
-  listEventCard: { background: "#202547", borderLeft: "3px solid", borderRadius: 8, padding: 16, animation: "fadeUp 0.2s ease-out" },
-  listEventHead: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 10 },
-  listEventName: { fontFamily: "'Sora', sans-serif", fontSize: 15, fontWeight: 600, margin: "0 0 6px", color: "#F4F3FA" },
-  listEventMeta: { fontSize: 12, color: "#8B90B3", display: "flex", alignItems: "center" },
-  listEventDetails: { display: "flex", flexDirection: "column", gap: 8 },
-  listDetailRow: { display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: "#B4B8D4" },
+  listContainer: { flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "clamp(6px, 2vw, 12px)", padding: "clamp(8px, 3vw, 16px)" },
+  listEventCard: { background: "#202547", borderLeft: "3px solid", borderRadius: 8, padding: "clamp(10px, 2.5vw, 16px)", animation: "fadeUp 0.2s ease-out", wordBreak: "break-word" },
+  listEventHead: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "clamp(8px, 2vw, 12px)", marginBottom: "clamp(6px, 1.5vw, 10px)", flexWrap: "wrap" },
+  listEventName: { fontFamily: "'Sora', sans-serif", fontSize: "clamp(13px, 3vw, 15px)", fontWeight: 600, margin: "0 0 4px", color: "#F4F3FA", flex: 1 },
+  listEventMeta: { fontSize: "clamp(11px, 2.5vw, 12px)", color: "#8B90B3", display: "flex", alignItems: "center", flexWrap: "wrap", gap: "4px 8px" },
+  listEventDetails: { display: "flex", flexDirection: "column", gap: "clamp(6px, 1.5vw, 8px)", marginTop: "clamp(6px, 1.5vw, 8px)" },
+  listDetailRow: { display: "flex", alignItems: "flex-start", gap: "clamp(6px, 1.5vw, 8px)", fontSize: "clamp(11px, 2.5vw, 12.5px)", color: "#B4B8D4", wordBreak: "break-word" },
 };
+
 
