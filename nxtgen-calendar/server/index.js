@@ -142,8 +142,21 @@ app.get("/kv", async (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 
+// Keep-alive job: periodically query the database to prevent Supabase idle pause
+function startKeepAliveJob() {
+  setInterval(async () => {
+    try {
+      await pool.query("SELECT NOW()");
+      console.log("[keep-alive] database pinged");
+    } catch (err) {
+      console.error("[keep-alive] error:", err.message);
+    }
+  }, 5 * 60 * 1000); // every 5 minutes
+}
+
 ensureTable()
   .then(() => {
+    startKeepAliveJob();
     app.listen(PORT, () => console.log(`NxtGen Sandoval Events API listening on :${PORT}`));
   })
   .catch((err) => {

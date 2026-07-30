@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Plus, Pencil, Trash2, X, ChevronLeft, ChevronRight, MapPin, Users, Clock, StickyNote, ShieldCheck, Eye, CalendarDays, Loader2, Megaphone, AlertTriangle, Link2, ExternalLink } from "lucide-react";
 import { supabase } from "./supabaseClient.js";
 
@@ -156,6 +156,41 @@ export default function App() {
     });
     return () => subscription.subscription.unsubscribe();
   }, []);
+
+  // Track last user activity for 10-minute session timeout
+  const lastActivityTimeRef = useRef(Date.now());
+
+  // 10-minute session timeout: auto sign-out on inactivity
+  useEffect(() => {
+    if (!teacherMode) return;
+
+    // Update lastActivityTime on user interaction
+    const handleActivity = () => {
+      lastActivityTimeRef.current = Date.now();
+    };
+
+    window.addEventListener("click", handleActivity);
+    window.addEventListener("keydown", handleActivity);
+    window.addEventListener("mousemove", handleActivity);
+    window.addEventListener("touchstart", handleActivity);
+
+    // Check every minute if 10 minutes have passed without activity
+    const checkTimeoutInterval = setInterval(() => {
+      const timeSinceActivity = Date.now() - lastActivityTimeRef.current;
+      if (timeSinceActivity > 10 * 60 * 1000) {
+        // 10 minutes of inactivity — sign out silently
+        exitTeacherMode();
+      }
+    }, 60 * 1000); // check every 1 minute
+
+    return () => {
+      window.removeEventListener("click", handleActivity);
+      window.removeEventListener("keydown", handleActivity);
+      window.removeEventListener("mousemove", handleActivity);
+      window.removeEventListener("touchstart", handleActivity);
+      clearInterval(checkTimeoutInterval);
+    };
+  }, [teacherMode]);
 
   const persistAnnouncements = useCallback(async (next) => {
     setAnnouncements(next);
