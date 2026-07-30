@@ -306,10 +306,10 @@ export default function App() {
     const monthStart = toDateKey(year, month, 1);
     const monthEnd = toDateKey(year, month, daysInMonth);
     
+    // Filter events that overlap with this month (no need to re-parse dates)
     const monthEvents = events.filter((ev) => {
-      const evStart = toDateKey(...ev.startDate.split("-").map(Number));
-      const evEnd = toDateKey(...ev.endDate.split("-").map(Number));
-      return (evStart <= monthEnd) && (evEnd >= monthStart);
+      // ev.startDate and ev.endDate are already YYYY-MM-DD strings, compare directly
+      return (ev.startDate <= monthEnd) && (ev.endDate >= monthStart);
     });
 
     return monthEvents.sort((a, b) => {
