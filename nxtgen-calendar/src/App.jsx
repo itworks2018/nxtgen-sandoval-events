@@ -472,7 +472,7 @@ export default function App() {
             rel="noopener noreferrer"
             style={{ ...styles.modePill, color: "#F4F3FA", textDecoration: "none" }}
           >
-            Menu <ExternalLink size={14} />
+            NxtGen Attendance <ExternalLink size={14} />
           </a>
         </div>
       </header>
