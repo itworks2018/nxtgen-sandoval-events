@@ -465,6 +465,15 @@ export default function App() {
               <Eye size={15} /> Viewing only
             </button>
           )}
+          <a
+            className="nxg-btn"
+            href="https://www.appsheet.com/start/bfe9c203-c4e4-45eb-9e84-de46315fd763"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ ...styles.modePill, color: "#F4F3FA", textDecoration: "none" }}
+          >
+            Menu <ExternalLink size={14} />
+          </a>
         </div>
       </header>
 
@@ -1157,5 +1166,4 @@ const styles = {
   listEventDetails: { display: "flex", flexDirection: "column", gap: "clamp(6px, 1.5vw, 8px)", marginTop: "clamp(6px, 1.5vw, 8px)" },
   listDetailRow: { display: "flex", alignItems: "flex-start", gap: "clamp(6px, 1.5vw, 8px)", fontSize: "clamp(11px, 2.5vw, 12.5px)", color: "#B4B8D4", wordBreak: "break-word" },
 };
-
 
