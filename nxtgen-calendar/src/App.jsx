@@ -497,12 +497,12 @@ export default function App() {
           <div style={styles.announceList} className="nxg-scroll">
             {announcements.map((a) => (
               <div key={a.id} style={{ ...styles.announceCard, borderLeftColor: a.urgent ? "#FB7503" : "#5EEAD4" }}>
-                {a.urgent && <AlertTriangle size={13} color="#FB7503" style={{ flexShrink: 0, marginTop: 1 }} />}
+                {a.urgent && <AlertTriangle size={13} color="#FB7503" style={{ position: "absolute", left: 12, top: 12 }} />}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={styles.announceCardHead}>
                     <h4 style={styles.announceTitle}>{a.title}</h4>
                     {teacherMode && (
-                      <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                      <div style={{ display: "flex", gap: 4, flexShrink: 0, position: "absolute", right: 10, top: 8 }}>
                         <button className="nxg-btn" style={styles.iconBtnSm} onClick={() => setEditingAnnouncement(a)} aria-label="Edit announcement">
                           <Pencil size={12} />
                         </button>
@@ -1081,17 +1081,17 @@ const styles = {
   modeRow: { display: "flex", alignItems: "center", gap: 10 },
   modePill: { display: "flex", alignItems: "center", gap: 6, background: "#171B33", border: "1px solid #2A2F52", color: "#8B90B3", padding: "8px 12px", borderRadius: 20, fontSize: 12.5, fontWeight: 500 },
   modePillActive: { display: "flex", alignItems: "center", gap: 6, background: "#30CEE422", border: "1px solid #30CEE4", color: "#30CEE4", padding: "8px 12px", borderRadius: 20, fontSize: 12.5, fontWeight: 600 },
-  announceBox: { background: "#171B33", border: "1px solid #2A2F52", borderRadius: 12, padding: "14px 16px", marginBottom: 18 },
-  announceHead: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 },
-  announceEyebrow: { display: "flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "#30CEE4" },
-  announceAddBtn: { display: "flex", alignItems: "center", gap: 4, background: "transparent", border: "1px solid #2A2F52", color: "#F4F3FA", padding: "5px 10px", borderRadius: 7, fontSize: 11.5, fontWeight: 600 },
-  announceEmpty: { color: "#8B90B3", fontSize: 12.5, margin: "8px 0 2px" },
-  announceList: { display: "flex", flexDirection: "column", gap: 8, marginTop: 8, maxHeight: 180, overflowY: "auto", paddingRight: 4 },
-  announceCard: { display: "flex", alignItems: "flex-start", gap: 8, background: "#202547", borderLeft: "3px solid", borderRadius: 8, padding: "9px 11px", animation: "fadeUp 0.2s ease-out" },
-  announceCardHead: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 },
-  announceTitle: { fontFamily: "'Sora', sans-serif", fontSize: 13, fontWeight: 700, margin: 0, color: "#F4F3FA" },
-  announceText: { flex: 1, fontSize: 12.5, lineHeight: 1.45, margin: "3px 0 0", color: "#F4F3FA" },
-  announceMeta: { fontSize: 10.5, color: "#8B90B3", margin: "6px 0 0" },
+  announceBox: { width: "100%", maxWidth: 1000, alignSelf: "center", background: "#171B33", border: "1px solid #2A2F52", borderRadius: 12, padding: "18px clamp(16px, 3vw, 28px)", marginBottom: 18 },
+  announceHead: { display: "flex", justifyContent: "center", alignItems: "center", position: "relative", marginBottom: 4 },
+  announceEyebrow: { display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: 13, fontWeight: 700, letterSpacing: "0.08em", color: "#30CEE4" },
+  announceAddBtn: { position: "absolute", right: 0, display: "flex", alignItems: "center", gap: 4, background: "transparent", border: "1px solid #2A2F52", color: "#F4F3FA", padding: "5px 10px", borderRadius: 7, fontSize: 11.5, fontWeight: 600 },
+  announceEmpty: { color: "#8B90B3", fontSize: 14, textAlign: "center", margin: "10px 0 2px" },
+  announceList: { display: "flex", flexDirection: "column", gap: 8, width: "100%", maxWidth: 820, margin: "12px auto 0", maxHeight: 240, overflowY: "auto", paddingRight: 4 },
+  announceCard: { position: "relative", display: "flex", alignItems: "flex-start", gap: 8, background: "#202547", borderLeft: "3px solid", borderRadius: 8, padding: "12px 16px", animation: "fadeUp 0.2s ease-out" },
+  announceCardHead: { display: "flex", justifyContent: "center", alignItems: "flex-start", gap: 8, position: "relative" },
+  announceTitle: { flex: 1, textAlign: "center", fontFamily: "'Sora', sans-serif", fontSize: 15, fontWeight: 700, margin: 0, color: "#F4F3FA" },
+  announceText: { flex: 1, textAlign: "center", fontSize: 14, lineHeight: 1.5, margin: "5px 0 0", color: "#F4F3FA" },
+  announceMeta: { fontSize: 11.5, textAlign: "center", color: "#8B90B3", margin: "7px 0 0" },
   resourceBox: { background: "#171B33", border: "1px solid #2A2F52", borderRadius: 12, padding: "14px 16px", marginBottom: 18 },
   resourceList: { display: "flex", flexDirection: "column", gap: 8, marginTop: 8 },
   resourceLink: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, background: "#202547", borderRadius: 8, padding: "9px 12px", fontSize: 12.5, fontWeight: 500, color: "#F4F3FA", textDecoration: "none" },
@@ -1166,4 +1166,3 @@ const styles = {
   listEventDetails: { display: "flex", flexDirection: "column", gap: "clamp(6px, 1.5vw, 8px)", marginTop: "clamp(6px, 1.5vw, 8px)" },
   listDetailRow: { display: "flex", alignItems: "flex-start", gap: "clamp(6px, 1.5vw, 8px)", fontSize: "clamp(11px, 2.5vw, 12.5px)", color: "#B4B8D4", wordBreak: "break-word" },
 };
-
