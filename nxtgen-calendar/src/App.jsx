@@ -659,14 +659,20 @@ export default function App() {
         )}
       </div>
 
-      {/* Day rail (slide-over) */}
+      {/* Selected day modal */}
       {selectedDate && (
-        <div style={styles.overlay} onClick={() => setSelectedDate(null)}>
-          <div style={styles.railPanel} onClick={(e) => e.stopPropagation()}>
+        <div style={styles.dayModalOverlay} onClick={() => setSelectedDate(null)}>
+          <div
+            style={styles.railPanel}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="selected-day-title"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div style={styles.railHeader}>
               <div>
                 <p style={styles.railEyebrow}>SCHEDULE</p>
-                <h3 style={styles.railTitle}>{formatDateHeading(selectedDate)}</h3>
+                <h3 id="selected-day-title" style={styles.railTitle}>{formatDateHeading(selectedDate)}</h3>
               </div>
               <button className="nxg-btn" style={styles.iconBtn} onClick={() => setSelectedDate(null)} aria-label="Close">
                 <X size={18} />
@@ -1119,7 +1125,8 @@ const styles = {
   loadingBox: { display: "flex", justifyContent: "center", padding: 60 },
 
   overlay: { position: "fixed", inset: 0, background: "rgba(10,11,22,0.6)", backdropFilter: "blur(2px)", display: "flex", justifyContent: "flex-end", zIndex: 50 },
-  railPanel: { width: "min(400px, 92vw)", background: "#171B33", height: "100%", borderLeft: "1px solid #2A2F52", padding: 22, display: "flex", flexDirection: "column", animation: "slideIn 0.22s ease-out" },
+  dayModalOverlay: { position: "fixed", inset: 0, background: "rgba(10,11,22,0.6)", backdropFilter: "blur(2px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, zIndex: 50 },
+  railPanel: { width: "min(560px, 100%)", maxHeight: "min(680px, 90vh)", background: "#171B33", border: "1px solid #2A2F52", borderRadius: 14, padding: 22, display: "flex", flexDirection: "column", animation: "fadeUp 0.2s ease-out" },
   railHeader: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 },
   railEyebrow: { fontSize: 10.5, letterSpacing: "0.1em", color: "#FB7503", fontWeight: 700, margin: 0 },
   railTitle: { fontFamily: "'Sora', sans-serif", fontSize: 18, fontWeight: 700, margin: "4px 0 0" },
