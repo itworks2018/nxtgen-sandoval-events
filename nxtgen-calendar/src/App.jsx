@@ -699,12 +699,12 @@ export default function App() {
                     )}
                   </div>
                   <div style={styles.eventMetaRow}>
-                    {formatWhen(ev) && <span style={styles.metaItem}><Clock size={12} /> {formatWhen(ev)}</span>}
-                    {ev.venue && <span style={styles.metaItem}><MapPin size={12} /> {ev.venue}</span>}
-                    {ev.participants && <span style={styles.metaItem}><Users size={12} /> {ev.participants}</span>}
+                    {formatWhen(ev) && <span style={styles.metaItem}><Clock size={14} /> {formatWhen(ev)}</span>}
+                    {ev.venue && <span style={styles.metaItem}><MapPin size={14} /> {ev.venue}</span>}
+                    {ev.participants && <span style={styles.metaItem}><Users size={14} /> {ev.participants}</span>}
                   </div>
                   {ev.notes && (
-                    <p style={styles.eventNotes}><StickyNote size={12} style={{ marginRight: 5, flexShrink: 0 }} />{ev.notes}</p>
+                    <p style={styles.eventNotes}><StickyNote size={14} style={{ marginRight: 5, flexShrink: 0 }} />{ev.notes}</p>
                   )}
                 </div>
               ))}
@@ -1126,18 +1126,18 @@ const styles = {
 
   overlay: { position: "fixed", inset: 0, background: "rgba(10,11,22,0.6)", backdropFilter: "blur(2px)", display: "flex", justifyContent: "flex-end", zIndex: 50 },
   dayModalOverlay: { position: "fixed", inset: 0, background: "rgba(10,11,22,0.6)", backdropFilter: "blur(2px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, zIndex: 50 },
-  railPanel: { width: "min(560px, 100%)", maxHeight: "min(680px, 90vh)", background: "#171B33", border: "1px solid #2A2F52", borderRadius: 14, padding: 22, display: "flex", flexDirection: "column", animation: "fadeUp 0.2s ease-out" },
+  railPanel: { width: "min(680px, 100%)", maxHeight: "min(760px, 90vh)", background: "#171B33", border: "1px solid #2A2F52", borderRadius: 14, padding: 26, display: "flex", flexDirection: "column", animation: "fadeUp 0.2s ease-out" },
   railHeader: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 },
   railEyebrow: { fontSize: 10.5, letterSpacing: "0.1em", color: "#FB7503", fontWeight: 700, margin: 0 },
-  railTitle: { fontFamily: "'Sora', sans-serif", fontSize: 18, fontWeight: 700, margin: "4px 0 0" },
+  railTitle: { fontFamily: "'Sora', sans-serif", fontSize: 22, fontWeight: 700, margin: "4px 0 0" },
   railBody: { flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 12 },
-  emptyText: { color: "#8B90B3", fontSize: 13.5 },
+  emptyText: { color: "#8B90B3", fontSize: 15 },
   eventCard: { background: "#202547", borderLeft: "3px solid", borderRadius: 8, padding: "12px 14px", animation: "fadeUp 0.2s ease-out" },
   eventCardHead: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 },
-  eventName: { fontFamily: "'Sora', sans-serif", fontSize: 14.5, fontWeight: 600, margin: 0 },
+  eventName: { fontFamily: "'Sora', sans-serif", fontSize: 17, fontWeight: 600, margin: 0 },
   eventMetaRow: { display: "flex", flexWrap: "wrap", gap: "6px 14px", marginTop: 8 },
-  metaItem: { display: "flex", alignItems: "center", gap: 4, fontSize: 11.5, color: "#8B90B3" },
-  eventNotes: { display: "flex", alignItems: "flex-start", fontSize: 12, color: "#B4B8D4", marginTop: 8, lineHeight: 1.4 },
+  metaItem: { display: "flex", alignItems: "center", gap: 5, fontSize: 14, color: "#8B90B3" },
+  eventNotes: { display: "flex", alignItems: "flex-start", fontSize: 14, color: "#B4B8D4", marginTop: 8, lineHeight: 1.5 },
   iconBtn: { background: "transparent", border: "none", color: "#8B90B3", width: 30, height: 30, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center" },
   iconBtnSm: { background: "#0F1224", border: "1px solid #2A2F52", color: "#8B90B3", width: 26, height: 26, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center" },
   addBtn: { marginTop: 14, background: "#FB7503", color: "#0F1224", border: "none", borderRadius: 8, padding: "11px 16px", fontWeight: 700, fontSize: 13.5, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 },
